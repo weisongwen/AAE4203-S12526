@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coordinate Transformation Tool - AAE4203</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .control-panel {
+            width: 400px;
+            background: white;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+        
+        .visualization {
+            flex: 1;
+            position: relative;
+            background: #1a1a1a;
+        }
+        
+        h1 {
+            color: #0066cc;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        
+        h2 {
+            color: #333;
+            margin: 20px 0 10px 0;
+            font-size: 18px;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 5px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+        
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-row .input-group {
+            flex: 1;
+        }
+        
+        button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.3s;
+            margin-top: 10px;
+            width: 100%;
+        }
+        
+        button:hover {
+            background: #0052a3;
+        }
+        
+        .result-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        
+        .result-box .label {
+            font-weight: bold;
+            color: #0066cc;
+            margin-bottom: 5px;
+        }
+        
+        .info-box {
+            background: #e8f4f8;
+            border: 1px solid #b8e0eb;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 13px;
+            color: #0066cc;
+        }
+        
+        .error {
+            color: #dc3545;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 8px;
+            background: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 4px 4px 0 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab-button.active {
+            background: white;
+            border-bottom-color: white;
+            position: relative;
+            top: 1px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        #info-display {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 13px;
+            max-width: 300px;
+        }
+        
+        #info-display h3 {
+            margin-bottom: 10px;
+            color: #4da6ff;
+        }
+        
+        #info-display p {
+            margin: 5px 0;
+        }
+        
+        .controls-3d {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="control-panel">
+            <h1>Coordinate Transformation Tool</h1>
+            
+            <div class="info-box">
+                Transform between Earth-Centered Earth-Fixed (ECEF), Latitude-Longitude-Altitude (LLA), 
+                and North-East-Down (NED) coordinate systems.
+            </div>
+            
+            <div class="tab-buttons">
+                <div class="tab-button active" onclick="switchTab('ecef')">ECEF → Others</div>
+                <div class="tab-button" onclick="switchTab('lla')">LLA → Others</div>
+                <div class="tab-button" onclick="switchTab('ned')">NED → Others</div>
+            </div>
+            
+            <!-- ECEF to Others -->
+            <div id="ecef-tab" class="tab-content active">
+                <h2>ECEF Coordinates</h2>
+                <div class="input-group">
+                    <label>X (meters)</label>
+                    <input type="number" id="ecef-x" value="-2443860.4" step="0.1">
+                </div>
+                <div class="input-group">
+                    <label>Y (meters)</label>
+                    <input type="number" id="ecef-y" value="5379582.8" step="0.1">
+                </div>
+                <div class="input-group">
+                    <label>Z (meters)</label>
+                    <input type="number" id="ecef-z" value="2412150.9" step="0.1">
+                </div>
+                <button onclick="convertFromECEF()">Convert from ECEF</button>
+                <div id="ecef-results"></div>
+            </div>
+            
+            <!-- LLA to Others -->
+            <div id="lla-tab" class="tab-content">
+                <h2>LLA Coordinates</h2>
+                <div class="input-group">
+                    <label>Latitude (degrees)</label>
+                    <input type="number" id="lla-lat" value="22.303" step="0.001" min="-90" max="90">
+                </div>
+                <div class="input-group">
+                    <label>Longitude (degrees)</label>
+                    <input type="number" id="lla-lon" value="114.180" step="0.001" min="-180" max="180">
+                </div>
+                <div class="input-group">
+                    <label>Altitude (meters)</label>
+                    <input type="number" id="lla-alt" value="30" step="0.1">
+                </div>
+                <button onclick="convertFromLLA()">Convert from LLA</button>
+                <div id="lla-results"></div>
+            </div>
+            
+            <!-- NED to Others -->
+            <div id="ned-tab" class="tab-content">
+                <h2>NED Reference Point (LLA)</h2>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Ref Lat (°)</label>
+                        <input type="number" id="ned-ref-lat" value="22.303" step="0.001">
+                    </div>
+                    <div class="input-group">
+                        <label>Ref Lon (°)</label>
+                        <input type="number" id="ned-ref-lon" value="114.180" step="0.001">
+                    </div>
+                    <div class="input-group">
+                        <label>Ref Alt (m)</label>
+                        <input type="number" id="ned-ref-alt" value="30" step="0.1">
+                    </div>
+                </div>
+                
+                <h2>NED Coordinates</h2>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>North (m)</label>
+                        <input type="number" id="ned-n" value="100" step="0.1">
+                    </div>
+                    <div class="input-group">
+                        <label>East (m)</label>
+                        <input type="number" id="ned-e" value="50" step="0.1">
+                    </div>
+                    <div class="input-group">
+                        <label>Down (m)</label>
+                        <input type="number" id="ned-d" value="10" step="0.1">
+                    </div>
+                </div>
+                <button onclick="convertFromNED()">Convert from NED</button>
+                <div id="ned-results"></div>
+            </div>
+        </div>
+        
+        <div class="visualization">
+            <div id="info-display">
+                <h3>3D Visualization</h3>
+                <p>🌍 Blue sphere: Earth (scaled)</p>
+                <p>📍 Red marker: Current position</p>
+                <p>🧭 Green line: North direction</p>
+                <p>Mouse: Rotate view | Scroll: Zoom</p>
+            </div>
+            <div class="controls-3d">
+                Left click + drag to rotate | Right click + drag to pan | Scroll to zoom
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Constants
+        const WGS84 = {
+            a: 6378137.0,        // Semi-major axis
+            b: 6356752.314,      // Semi-minor axis
+            f: 1/298.257223563,  // Flattening
+            e2: 0.00669438       // Eccentricity squared
+        };
+        
+        // Three.js setup
+        let scene, camera, renderer, earth, marker, northLine;
+        let currentPosition = { ecef: null, lla: null };
+        
+        function initVisualization() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a1a);
+            
+            const container = document.querySelector('.visualization');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
+            camera.position.set(3, 2, 3);
+            camera.lookAt(0, 0, 0);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            container.appendChild(renderer.domElement);
+            
+            // Add lights
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+            
+            // Add Earth (scaled down)
+            const earthGeometry = new THREE.SphereGeometry(1, 32, 32);
+            const earthMaterial = new THREE.MeshPhongMaterial({
+                color: 0x2194ce,
+                opacity: 0.7,
+                transparent: true
+            });
+            earth = new THREE.Mesh(earthGeometry, earthMaterial);
+            scene.add(earth);
+            
+            // Add coordinate axes
+            const axesHelper = new THREE.AxesHelper(1.5);
+            scene.add(axesHelper);
+            
+            // Add position marker
+            const markerGeometry = new THREE.SphereGeometry(0.02, 16, 16);
+            const markerMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000 });
+            marker = new THREE.Mesh(markerGeometry, markerMaterial);
+            scene.add(marker);
+            
+            // Add north direction line
+            const northGeometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(0, 0, 0),
+                new THREE.Vector3(0, 0, 0)
+            ]);
+            const northMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+            northLine = new THREE.Line(northGeometry, northMaterial);
+            scene.add(northLine);
+            
+            // Add controls
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+            
+            // Handle resize
+            window.addEventListener('resize', () => {
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(width, height);
+            });
+        }
+        
+        // Coordinate transformation functions
+        function ecefToLLA(x, y, z) {
+            const p = Math.sqrt(x*x + y*y);
+            const lon = Math.atan2(y, x) * 180 / Math.PI;
+            
+            // Iterative solution for latitude
+            let lat = Math.atan2(z, p * (1 - WGS84.e2));
+            let N, h, lat_prev;
+            
+            for (let i = 0; i < 5; i++) {
+                lat_prev = lat;
+                N = WGS84.a / Math.sqrt(1 - WGS84.e2 * Math.sin(lat) * Math.sin(lat));
+                h = p / Math.cos(lat) - N;
+                lat = Math.atan2(z, p * (1 - WGS84.e2 * N / (N + h)));
+                
+                if (Math.abs(lat - lat_prev) < 1e-10) break;
+            }
+            
+            lat = lat * 180 / Math.PI;
+            
+            return { lat, lon, alt: h };
+        }
+        
+        function llaToECEF(lat, lon, alt) {
+            const phi = lat * Math.PI / 180;
+            const lambda = lon * Math.PI / 180;
+            
+            const N = WGS84.a / Math.sqrt(1 - WGS84.e2 * Math.sin(phi) * Math.sin(phi));
+            
+            const x = (N + alt) * Math.cos(phi) * Math.cos(lambda);
+            const y = (N + alt) * Math.cos(phi) * Math.sin(lambda);
+            const z = (N * (1 - WGS84.e2) + alt) * Math.sin(phi);
+            
+            return { x, y, z };
+        }
+        
+        function ecefToNED(ecef, refLLA) {
+            const refECEF = llaToECEF(refLLA.lat, refLLA.lon, refLLA.alt);
+            const dx = ecef.x - refECEF.x;
+            const dy = ecef.y - refECEF.y;
+            const dz = ecef.z - refECEF.z;
+            
+            const phi = refLLA.lat * Math.PI / 180;
+            const lambda = refLLA.lon * Math.PI / 180;
+            
+            const sinPhi = Math.sin(phi);
+            const cosPhi = Math.cos(phi);
+            const sinLambda = Math.sin(lambda);
+            const cosLambda = Math.cos(lambda);
+            
+            const n = -sinPhi * cosLambda * dx - sinPhi * sinLambda * dy + cosPhi * dz;
+            const e = -sinLambda * dx + cosLambda * dy;
+            const d = -cosPhi * cosLambda * dx - cosPhi * sinLambda * dy - sinPhi * dz;
+            
+            return { n, e, d };
+        }
+        
+        function nedToECEF(ned, refLLA) {
+            const refECEF = llaToECEF(refLLA.lat, refLLA.lon, refLLA.alt);
+            
+            const phi = refLLA.lat * Math.PI / 180;
+            const lambda = refLLA.lon * Math.PI / 180;
+            
+            const sinPhi = Math.sin(phi);
+            const cosPhi = Math.cos(phi);
+            const sinLambda = Math.sin(lambda);
+            const cosLambda = Math.cos(lambda);
+            
+            const dx = -sinPhi * cosLambda * ned.n - sinLambda * ned.e - cosPhi * cosLambda * ned.d;
+            const dy = -sinPhi * sinLambda * ned.n + cosLambda * ned.e - cosPhi * sinLambda * ned.d;
+            const dz = cosPhi * ned.n - sinPhi * ned.d;
+            
+            return {
+                x: refECEF.x + dx,
+                y: refECEF.y + dy,
+                z: refECEF.z + dz
+            };
+        }
+        
+        // UI functions
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tab}-tab`).classList.add('active');
+        }
+        
+        function convertFromECEF() {
+            const x = parseFloat(document.getElementById('ecef-x').value);
+            const y = parseFloat(document.getElementById('ecef-y').value);
+            const z = parseFloat(document.getElementById('ecef-z').value);
+            
+            const lla = ecefToLLA(x, y, z);
+            const refLLA = { lat: 22.303, lon: 114.180, alt: 30 }; // PolyU reference
+            const ned = ecefToNED({ x, y, z }, refLLA);
+            
+            const resultsHTML = `
+                <div class="result-box">
+                    <div class="label">LLA Coordinates</div>
+                    Latitude: ${lla.lat.toFixed(6)}°<br>
+                    Longitude: ${lla.lon.toFixed(6)}°<br>
+                    Altitude: ${lla.alt.toFixed(2)} m
+                </div>
+                <div class="result-box">
+                    <div class="label">NED from PolyU Reference</div>
+                    North: ${ned.n.toFixed(2)} m<br>
+                    East: ${ned.e.toFixed(2)} m<br>
+                    Down: ${ned.d.toFixed(2)} m
+                </div>
+            `;
+            
+            document.getElementById('ecef-results').innerHTML = resultsHTML;
+            updateVisualization({ x, y, z }, lla);
+        }
+        
+        function convertFromLLA() {
+            const lat = parseFloat(document.getElementById('lla-lat').value);
+            const lon = parseFloat(document.getElementById('lla-lon').value);
+            const alt = parseFloat(document.getElementById('lla-alt').value);
+            
+            const ecef = llaToECEF(lat, lon, alt);
+            const refLLA = { lat: 22.303, lon: 114.180, alt: 30 };
+            const ned = ecefToNED(ecef, refLLA);
+            
+            const resultsHTML = `
+                <div class="result-box">
+                    <div class="label">ECEF Coordinates</div>
+                    X: ${ecef.x.toFixed(2)} m<br>
+                    Y: ${ecef.y.toFixed(2)} m<br>
+                    Z: ${ecef.z.toFixed(2)} m
+                </div>
+                <div class="result-box">
+                    <div class="label">NED from PolyU Reference</div>
+                    North: ${ned.n.toFixed(2)} m<br>
+                    East: ${ned.e.toFixed(2)} m<br>
+                    Down: ${ned.d.toFixed(2)} m
+                </div>
+            `;
+            
+            document.getElementById('lla-results').innerHTML = resultsHTML;
+            updateVisualization(ecef, { lat, lon, alt });
+        }
+        
+        function convertFromNED() {
+            const n = parseFloat(document.getElementById('ned-n').value);
+            const e = parseFloat(document.getElementById('ned-e').value);
+            const d = parseFloat(document.getElementById('ned-d').value);
+            
+            const refLat = parseFloat(document.getElementById('ned-ref-lat').value);
+            const refLon = parseFloat(document.getElementById('ned-ref-lon').value);
+            const refAlt = parseFloat(document.getElementById('ned-ref-alt').value);
+            
+            const refLLA = { lat: refLat, lon: refLon, alt: refAlt };
+            const ecef = nedToECEF({ n, e, d }, refLLA);
+            const lla = ecefToLLA(ecef.x, ecef.y, ecef.z);
+            
+            const resultsHTML = `
+                <div class="result-box">
+                    <div class="label">ECEF Coordinates</div>
+                    X: ${ecef.x.toFixed(2)} m<br>
+                    Y: ${ecef.y.toFixed(2)} m<br>
+                    Z: ${ecef.z.toFixed(2)} m
+                </div>
+                <div class="result-box">
+                    <div class="label">LLA Coordinates</div>
+                    Latitude: ${lla.lat.toFixed(6)}°<br>
+                    Longitude: ${lla.lon.toFixed(6)}°<br>
+                    Altitude: ${lla.alt.toFixed(2)} m
+                </div>
+            `;
+            
+            document.getElementById('ned-results').innerHTML = resultsHTML;
+            updateVisualization(ecef, lla);
+        }
+        
+        function updateVisualization(ecef, lla) {
+            if (!marker) return;
+            
+            // Scale down ECEF coordinates to fit in visualization
+            const scale = 1 / WGS84.a;
+            marker.position.set(ecef.x * scale, ecef.z * scale, -ecef.y * scale);
+            
+            // Update north line
+            const phi = lla.lat * Math.PI / 180;
+            const lambda = lla.lon * Math.PI / 180;
+            const northDir = new THREE.Vector3(
+                -Math.sin(phi) * Math.cos(lambda),
+                Math.cos(phi),
+                Math.sin(phi) * Math.sin(lambda)
+            );
+            
+            const positions = northLine.geometry.attributes.position.array;
+            positions[0] = marker.position.x;
+            positions[1] = marker.position.y;
+            positions[2] = marker.position.z;
+            positions[3] = marker.position.x + northDir.x * 0.2;
+            positions[4] = marker.position.y + northDir.y * 0.2;
+            positions[5] = marker.position.z + northDir.z * 0.2;
+            northLine.geometry.attributes.position.needsUpdate = true;
+            
+            currentPosition = { ecef, lla };
+        }
+        
+        // Three.js OrbitControls (simplified version)
+        THREE.OrbitControls = function(camera, domElement) {
+            const scope = this;
+            this.enableDamping = false;
+            this.dampingFactor = 0.05;
+            
+            const spherical = new THREE.Spherical();
+            const sphericalDelta = new THREE.Spherical();
+            const panOffset = new THREE.Vector3();
+            
+            const rotateStart = new THREE.Vector2();
+            const rotateEnd = new THREE.Vector2();
+            const rotateDelta = new THREE.Vector2();
+            
+            function onMouseDown(event) {
+                rotateStart.set(event.clientX, event.clientY);
+                domElement.addEventListener('mousemove', onMouseMove, false);
+                domElement.addEventListener('mouseup', onMouseUp, false);
+            }
+            
+            function onMouseMove(event) {
+                rotateEnd.set(event.clientX, event.clientY);
+                rotateDelta.subVectors(rotateEnd, rotateStart);
+                
+                sphericalDelta.theta -= 2 * Math.PI * rotateDelta.x / domElement.clientHeight;
+                sphericalDelta.phi -= 2 * Math.PI * rotateDelta.y / domElement.clientHeight;
+                
+                rotateStart.copy(rotateEnd);
+            }
+            
+            function onMouseUp() {
+                domElement.removeEventListener('mousemove', onMouseMove, false);
+                domElement.removeEventListener('mouseup', onMouseUp, false);
+            }
+            
+            function onMouseWheel(event) {
+                if (event.deltaY < 0) {
+                    sphericalDelta.radius *= 0.95;
+                } else {
+                    sphericalDelta.radius *= 1.05;
+                }
+            }
+            
+            this.update = function() {
+                const offset = new THREE.Vector3();
+                const quat = new THREE.Quaternion().setFromUnitVectors(
+                    camera.up, new THREE.Vector3(0, 1, 0)
+                );
+                const position = camera.position;
+                
+                offset.copy(position).sub(new THREE.Vector3(0, 0, 0));
+                offset.applyQuaternion(quat);
+                
+                spherical.setFromVector3(offset);
+                spherical.theta += sphericalDelta.theta;
+                spherical.phi += sphericalDelta.phi;
+                spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
+                spherical.radius += sphericalDelta.radius;
+                spherical.radius = Math.max(2, Math.min(10, spherical.radius));
+                
+                offset.setFromSpherical(spherical);
+                offset.applyQuaternion(quat.invert());
+                
+                position.copy(offset);
+                camera.lookAt(0, 0, 0);
+                
+                if (scope.enableDamping) {
+                    sphericalDelta.theta *= (1 - scope.dampingFactor);
+                    sphericalDelta.phi *= (1 - scope.dampingFactor);
+                    sphericalDelta.radius = 0;
+                } else {
+                    sphericalDelta.set(0, 0, 0);
+                }
+            };
+            
+            domElement.addEventListener('mousedown', onMouseDown, false);
+            domElement.addEventListener('wheel', onMouseWheel, false);
+        };
+        
+        // Initialize on load
+        window.onload = function() {
+            initVisualization();
+            convertFromLLA(); // Show initial position
+        };
+    </script>
+</body>
+</html>

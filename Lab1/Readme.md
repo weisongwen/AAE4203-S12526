@@ -179,7 +179,10 @@ The script will generate several visualizations and CSV files. Below are the exa
 *Satellite visibility and elevation angles*
 
 #### SPP Results
-![SPP Results](examples/rinex2csv.png)
+<p  align="center">
+<img src="examples/rinex2csv4.png" width="50%">
+</p>
+
 *Single Point Positioning results from MATLAB processing*
 
 ### 2.4 Generated CSV Files

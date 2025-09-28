@@ -2,39 +2,70 @@
 
 A comprehensive toolkit for processing GNSS UBX data files and performing Single Point Positioning (SPP) analysis with weighted least squares estimation.
 
-## Overview
-
-This pipeline provides a complete workflow for GNSS data processing, from raw UBX file conversion to advanced positioning analysis with error evaluation. The workflow includes data conversion, visualization, and statistical analysis of positioning accuracy.
+---
 
 ## Table of Contents
 
-1. [Prerequisites](#prerequisites)
-2. [Installation](#installation)
-3. [Workflow Overview](#workflow-overview)
-4. [Step 1: UBX to RINEX Conversion](#step-1-ubx-to-rinex-conversion)
-5. [Step 2: RINEX Data Processing](#step-2-rinex-data-processing)
-6. [Step 3: UBX to CSV Conversion](#step-3-ubx-to-csv-conversion)
-7. [Step 4: SPP Analysis](#step-4-spp-analysis)
-8. [Results and Visualization](#results-and-visualization)
-9. [Output Files](#output-files)
-10. [Troubleshooting](#troubleshooting)
+1. [Overview](#overview)  
+2. [Lab Requirements](#lab-requirements)  
+3. [Prerequisites](#prerequisites)  
+4. [Installation](#installation)  
+5. [Workflow Overview](#workflow-overview)
+6. [Step 0: GNSS Data Collection](#step-0-gnss-data-collection)
+7. [Step 1: UBX to RINEX Conversion](#step-1-ubx-to-rinex-conversion)
+8. [Step 2: RINEX Data Processing](#step-2-rinex-data-processing)  
+9. [Step 3: UBX to CSV Conversion](#step-3-ubx-to-csv-conversion)  
+10. [Step 4: SPP Analysis](#step-4-spp-analysis)  
+11. [Results and Visualization](#results-and-visualization)  
+12. [Output Files](#output-files)  
+13. [Troubleshooting](#troubleshooting)  
+14. [Technical Notes](#technical-notes)  
+15. [Contributing](#contributing)  
+16. [License](#license)  
+17. [References](#references)  
+18. [Contact](#contact)  
+
+---
+
+## Overview
+
+This pipeline provides a complete workflow for GNSS data processing, from raw UBX file collection to advanced positioning analysis with error evaluation. The workflow includes data collection, data conversion, visualization, and statistical analysis of positioning accuracy.
+
+---
+
+## Lab Requirements
+
+At the end of this laboratory exercise, each group is required to submit a comprehensive lab report.  
+The report should include the following components:
+
+| Section | Requirements |
+|---------|--------------|
+| **1. Data Collection** | Describe the data collection process, including hardware setup, software tools used, and environmental conditions. |
+| **2. Raw Data Analysis** | Analyze collected raw data (e.g., received signals, observed satellites, GDOP, quality indicators). |
+| **3. SPP Algorithm** | Explain single-point positioning (SPP) principle with least squares estimation, including Python code. <br> *Optional*: Explore weight matrix optimization for accuracy improvement. |
+| **4. Results and Discussion** | Present positioning results, error analysis, and interpretation, including comparison with expected urban performance. |
+| **5. Submission Package** | Include raw data, lab report (PDF), Python scripts, and README in a GitHub repo. <br> Submit the repo link to lecturer & TA. |
+
+📅 **Submission Deadline:** *TBA*
+
+---
+
 
 ## Prerequisites
 
 ### Software Requirements
-- **u-center** for data collection
-- **MATLAB** with the following toolboxes:
+- **[u-center](https://www.u-blox.com/zh/product/u-center)** for data collection
+- **[MATLAB](https://www.mathworks.com/products/matlab.html)** with the following toolboxes:
   - Mapping Toolbox
-  - Navigation Toolbox (recommended)
-- **Python 3.7+** with the following packages:
+- **[Python 3.7+](https://www.python.org/downloads/)** with the following packages:
   - numpy
   - matplotlib
   - pandas
   - pyubx2
   - cartopy (optional, for enhanced map visualization)
-- **RTKLIB 2.5** (RTKconv and RTKPOST utilities)
-- **Google Earth** for visualization
-  
+- **[RTKLIB 2.5](https://github.com/rtklibexplorer/RTKLIB/releases/download/v2.5.0/RTKLIB_EX_2.5.0.zip)** (RTKconv and RTKPOST utilities)
+- **[Google Earth](https://earth.google.com/web/)** for .kml trajectory visualization
+
 ### Hardware Requirements
 
 - Minimum 4GB RAM
@@ -64,7 +95,7 @@ For systems without cartopy, the code will automatically use fallback plotting m
 
 ### 3. Install MATLAB Dependencies
 
-Ensure you have MATLAB installed with the matRTKLIB toolbox. Add the matRTKLIB directory to your MATLAB path.
+Ensure you have [MATLAB](https://www.mathworks.com/products/matlab.html) installed for rinex2csv convertion. Add the matRTKLIB directory to your MATLAB path.
 
 ### 4. Install RTKLIB
 
@@ -75,6 +106,9 @@ Download and install [RTKLIB_EX_2.5.0.zip](https://github.com/rtklibexplorer/RTK
 The complete pipeline consists of four main steps:
 
 ![Lab1 Workflow](examples/flow.png)
+
+## Step 0: GNSS Data Collection
+For detailed GNSS data collection procedures, please refer to the [AAE4203_25_26_S1_Lab_Tutorial_1.pdf](AAE4203_25_26_S1_Lab_Tutorial_1.pdf).
 
 ## Step 1: UBX to RINEX Conversion
 
@@ -124,15 +158,24 @@ run('rinex2csv.m')
 The script will generate several visualizations and CSV files. Below are the examples:
 
 #### Signal Quality Analysis
-![SNR Quality](examples/rinex2csv1.png)
+<p  align="center">
+<img src="examples/rinex2csv1.png" width="50%">
+</p>
+
 *SNR threshold analysis showing signal quality distribution*
 
 #### Satellite Observation Count
-![Number of Observations](examples/rinex2csv2.png)
+<p  align="center">
+<img src="examples/rinex2csv2.png" width="50%">
+</p>
+
 *L1 observation count over time*
 
 #### Sky Plot
-![Sky Plot](examples/rinex2csv3.png)
+<p  align="center">
+<img src="examples/rinex2csv3.png" width="50%">
+</p>
+
 *Satellite visibility and elevation angles*
 
 #### SPP Results

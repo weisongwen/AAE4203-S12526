@@ -22,7 +22,7 @@ This pipeline provides a complete workflow for GNSS data processing, from raw UB
 ## Prerequisites
 
 ### Software Requirements
-
+- **u-center** for data collection
 - **MATLAB** with the following toolboxes:
   - Mapping Toolbox
   - Navigation Toolbox (recommended)
@@ -30,9 +30,11 @@ This pipeline provides a complete workflow for GNSS data processing, from raw UB
   - numpy
   - matplotlib
   - pandas
+  - pyubx2
   - cartopy (optional, for enhanced map visualization)
-- **RTKLIB** (RTKconv and RTKPOST utilities)
-
+- **RTKLIB 2.5** (RTKconv and RTKPOST utilities)
+- **Google Earth** for visualization
+  
 ### Hardware Requirements
 
 - Minimum 4GB RAM
@@ -72,17 +74,7 @@ Download and install [RTKLIB_EX_2.5.0.zip](https://github.com/rtklibexplorer/RTK
 
 The complete pipeline consists of four main steps:
 
-```
-UBX File
-    ├── RTKconv → RINEX OBS/NAV → rinex2csv.m → CSV Files ──┐
-    └── pyubx2_csv_converter_gui.py → NAV-HPPOSECEF.csv ──────┤
-                                                              │
-                                                              ↓
-                                                         WLSE_spp.py
-                                                              │
-                                                              ↓
-                                                    Results & Visualizations
-```
+![Lab1 Workflow](examples/flow.png)
 
 ## Step 1: UBX to RINEX Conversion
 
